@@ -9,10 +9,16 @@ import {
   validationError,
   withErrorHandling,
 } from "@/lib/errors";
+import { verifyApiKey } from "@/lib/unkey";
 
 export const runtime = "nodejs";
 
 export const POST = withErrorHandling(async (req: Request) => {
+  const auth = await verifyApiKey(req);
+  if (!auth.valid) {
+    return jsonError("Unauthorized", 401, { code: auth.code });
+  }
+
   const body = await parseJsonBody(req);
   if (body === null) {
     return jsonError("Invalid JSON body", 400);
@@ -31,11 +37,12 @@ export const POST = withErrorHandling(async (req: Request) => {
     question,
     type,
     topic,
-    options: type === "multiple_choice" ? (options ?? null) : null,
+    options: (options ?? null),
     correctAnswer,
     attempted: 0,
     correct: 0,
     explanation,
+    ownerId: auth.ownerId,
     embedding: FieldValue.vector(embedding),
     createdAt: FieldValue.serverTimestamp(),
   });

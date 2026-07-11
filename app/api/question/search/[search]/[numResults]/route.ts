@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb, QUESTIONS_COLLECTION } from "@/lib/firebase";
 import { embedText } from "@/lib/embeddings";
 import { jsonError, withErrorHandling } from "@/lib/errors";
+import { verifyApiKey } from "@/lib/unkey";
 
 export const runtime = "nodejs";
 
@@ -9,9 +10,14 @@ const MAX_RESULTS = 50;
 
 export const GET = withErrorHandling(
   async (
-    _req: Request,
+    req: Request,
     ctx: { params: Promise<{ search: string; numResults: string }> },
   ) => {
+    const auth = await verifyApiKey(req);
+    if (!auth.valid) {
+      return jsonError("Unauthorized", 401, { code: auth.code });
+    }
+
     const { search, numResults } = await ctx.params;
 
     const query = decodeURIComponent(search).trim();
@@ -37,7 +43,11 @@ export const GET = withErrorHandling(
       })
       .get();
 
-    const ids = snapshot.docs.map((doc) => doc.id);
+    // Filter results to only include questions owned by the caller.
+    const ids = snapshot.docs
+      .filter((doc) => doc.data().ownerId === auth.ownerId)
+      .map((doc) => doc.id);
+
     return NextResponse.json({ ids }, { status: 200 });
   },
 );

@@ -13,6 +13,7 @@ export function toQuestion(
   const data = snap.data()!;
   return {
     id: snap.id,
+    ownerId: data.ownerId ?? "",
     question: data.question,
     type: data.type,
     topic: data.topic,
@@ -44,6 +45,34 @@ export async function findMissingQuestionIds(
   );
   const snaps = await db.getAll(...refs);
   return snaps.filter((s) => !s.exists).map((s) => s.id);
+}
+
+/**
+ * Fetches the given question IDs and returns two buckets:
+ * - `missing`: IDs that don't exist in Firestore
+ * - `forbidden`: IDs that exist but are owned by a different owner
+ */
+export async function checkQuestionOwnership(
+  ids: string[],
+  ownerId: string,
+): Promise<{ missing: string[]; forbidden: string[] }> {
+  const db = getDb();
+  const unique = [...new Set(ids)];
+  const refs = unique.map((id) => db.collection(QUESTIONS_COLLECTION).doc(id));
+  const snaps = await db.getAll(...refs);
+
+  const missing: string[] = [];
+  const forbidden: string[] = [];
+
+  for (const snap of snaps) {
+    if (!snap.exists) {
+      missing.push(snap.id);
+    } else if (snap.data()!.ownerId !== ownerId) {
+      forbidden.push(snap.id);
+    }
+  }
+
+  return { missing, forbidden };
 }
 
 /** Fetches many questions by id, preserving the requested order. */

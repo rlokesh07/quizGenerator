@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const QUESTION_TYPES = ["multiple_choice", "short_answer"] as const;
+export const QUESTION_TYPES = ["multiple_choice", "short_answer", "number_answer"] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
 /**
@@ -14,7 +14,7 @@ export const createQuestionSchema = z
     type: z.enum(QUESTION_TYPES),
     topic: z.string().trim().min(1, "topic is required"),
     options: z.array(z.string().trim().min(1)).min(2).nullish(),
-    correctAnswer: z.string().trim().min(1, "correctAnswer is required"),
+    correctAnswer: z.string().trim().min(1, "correctAnswer is required").or(z.number()),
     explanation: z.array(z.string()).default([]),
   })
   .superRefine((data, ctx) => {
@@ -25,7 +25,7 @@ export const createQuestionSchema = z
           path: ["options"],
           message: "multiple_choice questions require at least 2 options",
         });
-      } else if (!data.options.includes(data.correctAnswer)) {
+      } else if (!data.options.includes(String(data.correctAnswer))) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["correctAnswer"],
@@ -38,6 +38,14 @@ export const createQuestionSchema = z
         path: ["options"],
         message: `options are only allowed for multiple_choice questions`,
       });
+    } else if (data.type === "number_answer"){
+        if(typeof data.correctAnswer === "number"){
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["correctAnswer"],
+                message: "correctAnswer needs to be number for question type number_answer",
+            });
+        }
     }
   });
 
@@ -63,6 +71,7 @@ export type AttemptInput = z.infer<typeof attemptSchema>;
 /** Stored/returned shape of a question (without embedding). */
 export interface Question {
   id: string;
+  ownerId: string;
   question: string;
   type: string;
   topic: string;
