@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function HomePage() {
   return (
@@ -9,6 +11,12 @@ export default function HomePage() {
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">Quiz Generator</h1>
           <p className="text-muted-foreground">Create and share interactive quizzes powered by AI.</p>
+        </div>
+
+        <div className="flex justify-center">
+          <Link href="/login" className={buttonVariants()}>
+            Get an API Key
+          </Link>
         </div>
 
         <Card>

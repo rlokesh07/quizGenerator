@@ -39,7 +39,7 @@ export const GET = withErrorHandling(
         vectorField: "embedding",
         queryVector,
         limit,
-        distanceMeasure: "COSINE",
+        distanceMeasure: "DOT_PRODUCT",
       })
       .get();
 
