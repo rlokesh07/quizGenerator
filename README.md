@@ -38,6 +38,45 @@ cp .env.example .env
 npm run dev
 ```
 
+## Local Unkey for API-key tests
+
+The repository can run a local development-only Unkey v2.0.73 service for
+`scripts/test-flow.sh`. It stores data in Docker volumes and exposes its API at
+`http://localhost:8080`.
+
+Initialize a fresh local instance:
+
+```bash
+bash scripts/reset-unkey.sh
+```
+
+This removes the local Unkey Docker volumes, downloads the pinned Unkey schema
+assets, starts the containers, and writes generated credentials to `.unkey.env`.
+That file is ignored by Git and must remain private.
+
+On later starts, use:
+
+```bash
+docker compose up -d
+```
+
+Load both the application configuration and generated Unkey credentials before
+starting the app or test flow:
+
+```bash
+set -a
+source .env
+source .unkey.env
+set +a
+
+npm run dev
+# In another terminal:
+bash scripts/test-flow.sh
+```
+
+The test flow uses unique Alice and Bob identities on every run. Reset Unkey
+only when you want to discard all local API keys and identities.
+
 ## Firestore vector index (required for search)
 
 `GET /api/question/:search/:numResults` uses `findNearest`, which requires a KNN

@@ -32,12 +32,14 @@ export const POST = withErrorHandling(async (req: Request) => {
   }
 
   let email: string;
+  let uid: string;
   try {
     const decoded = await getAuth(getAdminApp()).verifyIdToken(idToken);
     if (!decoded.email) {
       return jsonError("Google account has no email", 400);
     }
     email = decoded.email;
+    uid = decoded.uid;
   } catch {
     return jsonError("Invalid or expired ID token", 401);
   }
@@ -53,7 +55,7 @@ export const POST = withErrorHandling(async (req: Request) => {
     const result = await unkey.keys.createKey({
       apiId,
       name: email,
-      externalId: email,
+      externalId: uid,
       prefix: "quiz",
     });
     key = result.data.key;

@@ -5,6 +5,9 @@ BASE_URL="${BASE_URL:-http://localhost:3000}"
 UNKEY_URL="${UNKEY_SERVER_URL:-http://localhost:8080}"
 ROOT_KEY="${UNKEY_ROOT_KEY:?UNKEY_ROOT_KEY is required}"
 API_ID="${UNKEY_API_ID:?UNKEY_API_ID is required}"
+RUN_ID="$(date +%s)-$$"
+ALICE_ID="alice-test-$RUN_ID"
+BOB_ID="bob-test-$RUN_ID"
 
 # ── colours ──────────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; RED='\033[0;31m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -26,14 +29,14 @@ step "Creating identities"
 ALICE_RESP=$(curl -sf -X POST "$UNKEY_URL/v2/identities.createIdentity" \
   -H "Authorization: Bearer $ROOT_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"externalId":"alice-test"}')
-ok "Identity alice-test created"
+  -d "{\"externalId\":\"$ALICE_ID\"}")
+ok "Identity $ALICE_ID created"
 
 BOB_RESP=$(curl -sf -X POST "$UNKEY_URL/v2/identities.createIdentity" \
   -H "Authorization: Bearer $ROOT_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"externalId":"bob-test"}')
-ok "Identity bob-test created"
+  -d "{\"externalId\":\"$BOB_ID\"}")
+ok "Identity $BOB_ID created"
 
 # ── Step 2: issue keys ────────────────────────────────────────────────────────
 step "Issuing API keys"
@@ -41,14 +44,14 @@ step "Issuing API keys"
 ALICE_KEY_RESP=$(curl -sf -X POST "$UNKEY_URL/v2/keys.createKey" \
   -H "Authorization: Bearer $ROOT_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"apiId\":\"$API_ID\",\"externalId\":\"alice-test\",\"prefix\":\"quiz\"}")
+  -d "{\"apiId\":\"$API_ID\",\"externalId\":\"$ALICE_ID\",\"prefix\":\"quiz\"}")
 ALICE_KEY=$(get_field "$ALICE_KEY_RESP" "key")
 ok "Alice key: $ALICE_KEY"
 
 BOB_KEY_RESP=$(curl -sf -X POST "$UNKEY_URL/v2/keys.createKey" \
   -H "Authorization: Bearer $ROOT_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"apiId\":\"$API_ID\",\"externalId\":\"bob-test\",\"prefix\":\"quiz\"}")
+  -d "{\"apiId\":\"$API_ID\",\"externalId\":\"$BOB_ID\",\"prefix\":\"quiz\"}")
 BOB_KEY=$(get_field "$BOB_KEY_RESP" "key")
 ok "Bob key: $BOB_KEY"
 

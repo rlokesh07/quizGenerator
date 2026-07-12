@@ -108,12 +108,6 @@ export default function LoginPage() {
                   </p>
                 </div>
 
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Usage</p>
-                  <code className="block text-xs font-mono bg-muted px-3 py-2 rounded">
-                    x-api-key: {state.key}
-                  </code>
-                </div>
               </div>
             )}
           </CardContent>

@@ -20,7 +20,11 @@ yarn-error.log*
 # env files
 .env
 .env*.local
+.unkey.env
 serviceAccount.json
+
+# Downloaded version-pinned Unkey database initialization assets
+/unkey/
 
 # typescript
 *.tsbuildinfo

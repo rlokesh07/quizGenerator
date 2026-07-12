@@ -8,6 +8,7 @@ services:
       - "3306:3306"
     volumes:
       - unkey_mysql_data:/var/lib/mysql
+      - ./unkey/mysql-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-punkey"]
       interval: 5s
@@ -22,12 +23,13 @@ services:
       - unkey_redis_data:/data
 
   unkey:
-    image: ghcr.io/unkeyed/api:latest
+    image: ghcr.io/unkeyed/unkey:v2.0.73
+    command: run api
     ports:
-      - "8080:8080"
+      - "8080:7070"
     environment:
-      DATABASE_DSN: "root:unkey@tcp(mysql:3306)/unkey?parseTime=true"
-      REDIS_URL: "redis://redis:6379"
+      UNKEY_DATABASE_PRIMARY: "root:unkey@tcp(mysql:3306)/unkey?parseTime=true"
+      UNKEY_REDIS_URL: "redis://redis:6379"
     depends_on:
       mysql:
         condition: service_healthy
