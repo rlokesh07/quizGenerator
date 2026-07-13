@@ -2,7 +2,7 @@ services:
   mysql:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: unkey
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-unkey}
       MYSQL_DATABASE: unkey
     ports:
       - "3306:3306"
@@ -10,7 +10,7 @@ services:
       - unkey_mysql_data:/var/lib/mysql
       - ./unkey/mysql-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-punkey"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-unkey}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -28,7 +28,7 @@ services:
     ports:
       - "8080:7070"
     environment:
-      UNKEY_DATABASE_PRIMARY: "root:unkey@tcp(mysql:3306)/unkey?parseTime=true"
+      UNKEY_DATABASE_PRIMARY: "root:${MYSQL_ROOT_PASSWORD:-unkey}@tcp(mysql:3306)/unkey?parseTime=true"
       UNKEY_REDIS_URL: "redis://redis:6379"
     depends_on:
       mysql:

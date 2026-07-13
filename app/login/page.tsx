@@ -1,115 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase-client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-
-type State =
-  | { status: "idle" }
-  | { status: "loading" }
-  | { status: "done"; key: string; email: string }
-  | { status: "error"; message: string };
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
 
 export default function LoginPage() {
-  const [state, setState] = useState<State>({ status: "idle" });
+  const auth = useAuth();
+  const router = useRouter();
 
-  async function handleGoogleSignIn() {
-    setState({ status: "loading" });
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken();
-
-      const res = await fetch("/api/auth/create-key", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setState({ status: "error", message: data.error ?? "Failed to create API key." });
-        return;
-      }
-
-      setState({ status: "done", key: data.key, email: data.email });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong.";
-      setState({ status: "error", message });
+  useEffect(() => {
+    if (auth.status === "signed-in") {
+      router.replace("/dashboard");
     }
-  }
+  }, [auth.status, router]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Get an API Key</h1>
-          <p className="text-muted-foreground">Sign in with Google to generate your personal API key.</p>
+    <main className="flex min-h-screen items-center justify-center p-6">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <KeyRound className="size-5" />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight">Quiz Generator</h1>
+          <p className="text-sm text-muted-foreground">Sign in to manage your API keys.</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Sign in</CardTitle>
-            <CardDescription>
-              We&apos;ll create an API key tied to your Google account email.
-            </CardDescription>
+            <CardTitle className="text-base">Welcome back</CardTitle>
+            <CardDescription>Sign in with Google to continue to your dashboard.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {state.status !== "done" && (
-              <Button
-                onClick={handleGoogleSignIn}
-                disabled={state.status === "loading"}
-                className="w-full"
-              >
-                {state.status === "loading" ? (
-                  "Signing in…"
-                ) : (
-                  <>
-                    <GoogleIcon />
-                    Sign in with Google
-                  </>
-                )}
-              </Button>
-            )}
-
-            {state.status === "error" && (
-              <p className="text-sm text-destructive text-center">{state.message}</p>
-            )}
-
-            {state.status === "done" && (
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Signed in as</p>
-                  <p className="font-medium">{state.email}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">Your API Key</p>
-                    <Badge variant="secondary">Keep this secret</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded break-all">
-                      {state.key}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigator.clipboard.writeText(state.key)}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    This key will not be shown again. Store it somewhere safe.
-                  </p>
-                </div>
-
-              </div>
-            )}
+          <CardContent>
+            <Button
+              className="w-full"
+              disabled={auth.status !== "signed-out"}
+              onClick={() => {
+                if (auth.status === "signed-out") auth.signIn();
+              }}
+            >
+              <GoogleIcon />
+              Sign in with Google
+            </Button>
           </CardContent>
         </Card>
       </div>

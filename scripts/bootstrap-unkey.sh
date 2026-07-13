@@ -3,7 +3,7 @@ set -euo pipefail
 
 OUTPUT_FILE="${1:-.unkey.env}"
 CONTAINER_OUTPUT="/tmp/quiz-generator-unkey.env"
-DATABASE_DSN="root:unkey@tcp(mysql:3306)/unkey?parseTime=true"
+DATABASE_DSN="root:${MYSQL_ROOT_PASSWORD:-unkey}@tcp(mysql:3306)/unkey?parseTime=true"
 
 if [ ! -d "unkey/mysql-init" ]; then
   echo "Missing Unkey database assets. Run: bash scripts/setup-unkey-assets.sh" >&2

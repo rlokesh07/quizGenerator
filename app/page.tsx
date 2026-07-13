@@ -15,7 +15,7 @@ export default function HomePage() {
 
         <div className="flex justify-center">
           <Link href="/login" className={buttonVariants()}>
-            Get an API Key
+            Open Dashboard
           </Link>
         </div>
 

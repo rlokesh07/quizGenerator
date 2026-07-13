@@ -26,6 +26,14 @@ function createApp(): App {
   });
 }
 
+/**
+ * Lazily initializes and returns the shared Firebase Admin app, used for both
+ * Firestore access and verifying client ID tokens sent by signed-in users.
+ */
+export function getAdminApp(): App {
+  return getApps().length ? getApp() : createApp();
+}
+
 let firestore: Firestore | null = null;
 
 /**
@@ -35,8 +43,7 @@ let firestore: Firestore | null = null;
  */
 export function getDb(): Firestore {
   if (firestore) return firestore;
-  const app: App = getApps().length ? getApp() : createApp();
-  firestore = getFirestore(app);
+  firestore = getFirestore(getAdminApp());
   return firestore;
 }
 
